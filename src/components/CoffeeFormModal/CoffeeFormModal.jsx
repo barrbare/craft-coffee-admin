@@ -49,11 +49,18 @@ const CoffeeFormModal = ({ isOpen, onClose, initialData }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (formData.ingredients.length === 0) {
+      alert("Please select at least one ingredient.");
+      return;
+    }
+
     if (initialData) {
       updateCoffee(initialData.id, formData, ingredients);
     } else {
       addCoffee(formData, ingredients);
     }
+
     onClose();
   };
 
@@ -100,14 +107,17 @@ const CoffeeFormModal = ({ isOpen, onClose, initialData }) => {
               name="country"
               value={formData.country}
               onChange={handleChange}
+              required
             />
           </div>
           <div className={styles.formGroup}>
             <label>Caffeine</label>
             <input
+              type="number"
               name="caffeine"
               value={formData.caffeine}
               onChange={handleChange}
+              required
             />
           </div>
           <div className={styles.formGroup}>
@@ -116,6 +126,7 @@ const CoffeeFormModal = ({ isOpen, onClose, initialData }) => {
               name="description"
               value={formData.description}
               onChange={handleChange}
+              required
             />
           </div>
           <div className={styles.actions}>

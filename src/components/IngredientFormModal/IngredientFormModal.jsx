@@ -73,6 +73,7 @@ const IngredientFormModal = ({ isOpen, onClose, initialData }) => {
               name="description"
               value={formData.description}
               onChange={handleChange}
+              required
             />
           </div>
           <div className={styles.formGroup}>
@@ -81,6 +82,7 @@ const IngredientFormModal = ({ isOpen, onClose, initialData }) => {
               name="strength"
               value={formData.strength}
               onChange={handleChange}
+              required
             />
           </div>
           <div className={styles.formGroup}>
@@ -89,6 +91,7 @@ const IngredientFormModal = ({ isOpen, onClose, initialData }) => {
               name="flavor"
               value={formData.flavor}
               onChange={handleChange}
+              required
             />
           </div>
           <div className={styles.actions}>

@@ -22,6 +22,7 @@ const CoffeeTable = ({ onEdit }) => {
             <th>ID</th>
             <th>Image</th>
             <th>Title</th>
+            <th>Description</th>
             <th>Ingredients</th>
             <th>Country</th>
             <th>Caffeine</th>
@@ -32,7 +33,7 @@ const CoffeeTable = ({ onEdit }) => {
         <tbody>
           {coffees.length === 0 ? (
             <tr>
-              <td colSpan="8" style={{ textAlign: "center" }}>
+              <td colSpan="9" style={{ textAlign: "center" }}>
                 No coffee items found.
               </td>
             </tr>
@@ -46,9 +47,10 @@ const CoffeeTable = ({ onEdit }) => {
                 <td>
                   <strong>{item.title}</strong>
                 </td>
+                <td>{item.description}</td>
                 <td>{getIngredientNames(item.ingredients) || "None"}</td>
                 <td>{item.country}</td>
-                <td>{item.caffeine}</td>
+                <td>{item.caffeine} mg</td>
                 <td>
                   <span className={styles.priceBadge}>{item.totalPrice} ₾</span>
                 </td>
