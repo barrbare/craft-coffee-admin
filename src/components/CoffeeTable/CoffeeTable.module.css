@@ -1,0 +1,67 @@
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ffffff;
+  text-align: left;
+  font-family: sans-serif;
+}
+
+.table th {
+  background-color: #4e342e;
+  color: #ffffff;
+  padding: 12px 16px;
+  font-weight: 600;
+}
+
+.table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #333333;
+}
+
+.table tr:hover {
+  background-color: #f5f5f5;
+}
+
+.thumb {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.priceBadge {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.deleteBtn,
+.editBtn {
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-right: 6px;
+}
+
+.editBtn {
+  background-color: #ffb300;
+  color: #000000;
+}
+
+.deleteBtn {
+  background-color: #e53935;
+  color: #ffffff;
+}
