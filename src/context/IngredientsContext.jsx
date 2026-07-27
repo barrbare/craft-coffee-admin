@@ -1,67 +1,91 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { v4 as uuidv4 } from "uuid";
 
 const IngredientsContext = createContext();
 
-const initialIngredients = [
-  {
-    id: uuidv4(),
-    name: "Espresso Shot",
-    price: 1.5,
-    description: "Dark and rich espresso shot",
-    strength: "High",
-    flavor: "Bitter"
-  },
-  {
-    id: uuidv4(),
-    name: "Steamed Milk",
-    price: 1.0,
-    description: "Creamy fresh whole milk",
-    strength: "Low",
-    flavor: "Sweet/Creamy"
-  }
-];
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1/resource";
+const BYPASS_TOKEN = import.meta.env.VITE_BYPASS_TOKEN || "YXBpS2V5U2VjcmV0";
+
+const headers = {
+  "Content-Type": "application/json",
+  "x-bypass-token": BYPASS_TOKEN,
+};
 
 export const IngredientsProvider = ({ children }) => {
-  const [ingredients, setIngredients] = useState(() => {
-    const saved = localStorage.getItem("craft_coffee_ingredients");
-    return saved ? JSON.parse(saved) : initialIngredients;
-  });
+  const [ingredients, setIngredients] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchIngredients = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/craft_coffee_ingredients`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setIngredients(data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching ingredients:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    localStorage.setItem("craft_coffee_ingredients", JSON.stringify(ingredients));
-  }, [ingredients]);
+    fetchIngredients();
+  }, []);
 
-  const addIngredient = (newIngredient) => {
-    const itemToAdd = {
-      ...newIngredient,
-      id: uuidv4(),
-      price: Number(newIngredient.price)
-    };
-    setIngredients((prev) => [...prev, itemToAdd]);
+  const addIngredient = async (newIng) => {
+    try {
+      const res = await fetch(`${API_URL}/craft_coffee_ingredients`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ data: [newIng] }),
+      });
+      if (res.ok) {
+        await fetchIngredients();
+      }
+    } catch (error) {
+      console.error("Error adding ingredient:", error);
+    }
   };
 
-  const deleteIngredient = (id) => {
-    setIngredients((prev) => prev.filter((item) => item.id !== id));
+  const updateIngredient = async (id, updatedIng) => {
+    try {
+      const res = await fetch(`${API_URL}/craft_coffee_ingredients/${id}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ data: [updatedIng] }),
+      });
+      if (res.ok) {
+        await fetchIngredients();
+      }
+    } catch (error) {
+      console.error("Error updating ingredient:", error);
+    }
   };
 
-  const updateIngredient = (id, updatedData) => {
-    setIngredients((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, ...updatedData, price: Number(updatedData.price) }
-          : item
-      )
-    );
+  const deleteIngredient = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/craft_coffee_ingredients/${id}`, {
+        method: "DELETE",
+        headers,
+      });
+      if (res.ok) {
+        await fetchIngredients();
+      }
+    } catch (error) {
+      console.error("Error deleting ingredient:", error);
+    }
   };
 
   return (
     <IngredientsContext.Provider
       value={{
         ingredients,
+        loading,
         addIngredient,
+        updateIngredient,
         deleteIngredient,
-        updateIngredient
+        refreshIngredients: fetchIngredients,
       }}
     >
       {children}
@@ -69,10 +93,4 @@ export const IngredientsProvider = ({ children }) => {
   );
 };
 
-export const useIngredients = () => {
-  const context = useContext(IngredientsContext);
-  if (!context) {
-    throw new Error("useIngredients must be used within an IngredientsProvider");
-  }
-  return context;
-};
+export const useIngredients = () => useContext(IngredientsContext);

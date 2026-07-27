@@ -1,73 +1,91 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { v4 as uuidv4 } from "uuid";
 
 const CoffeeContext = createContext();
 
-const initialCoffees = [
-  {
-    id: uuidv4(),
-    title: "Classic Cappuccino",
-    ingredients: [],
-    description: "Classic Italian coffee with steamed milk foam",
-    image: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=500",
-    country: "Italy",
-    caffeine: "150mg",
-    totalPrice: 2.0
-  }
-];
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1/resource";
+const BYPASS_TOKEN = import.meta.env.VITE_BYPASS_TOKEN || "YXBpS2V5U2VjcmV0";
+
+const headers = {
+  "Content-Type": "application/json",
+  "x-bypass-token": BYPASS_TOKEN,
+};
 
 export const CoffeeProvider = ({ children }) => {
-  const [coffees, setCoffees] = useState(() => {
-    const saved = localStorage.getItem("craft_coffee_items");
-    return saved ? JSON.parse(saved) : initialCoffees;
-  });
+  const [coffees, setCoffees] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchCoffees = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/craft_coffee_items`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setCoffees(data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching coffees:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    localStorage.setItem("craft_coffee_items", JSON.stringify(coffees));
-  }, [coffees]);
+    fetchCoffees();
+  }, []);
 
-  const calculateTotalPrice = (selectedIngredientIds = [], allIngredients = []) => {
-    const basePrice = 2;
-    const ingredientsSum = selectedIngredientIds.reduce((sum, ingId) => {
-      const found = allIngredients.find((i) => i.id === ingId);
-      return sum + (found ? Number(found.price) : 0);
-    }, 0);
-
-    return Number((basePrice + ingredientsSum).toFixed(2));
+  const addCoffee = async (newCoffee) => {
+    try {
+      const res = await fetch(`${API_URL}/craft_coffee_items`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ data: [newCoffee] }),
+      });
+      if (res.ok) {
+        await fetchCoffees();
+      }
+    } catch (error) {
+      console.error("Error adding coffee:", error);
+    }
   };
 
-  const addCoffee = (newCoffee, ingredientsList) => {
-    const calculatedPrice = calculateTotalPrice(newCoffee.ingredients, ingredientsList);
-    const itemToAdd = {
-      ...newCoffee,
-      id: uuidv4(),
-      totalPrice: calculatedPrice
-    };
-    setCoffees((prev) => [...prev, itemToAdd]);
+  const updateCoffee = async (id, updatedCoffee) => {
+    try {
+      const res = await fetch(`${API_URL}/craft_coffee_items/${id}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ data: [updatedCoffee] }),
+      });
+      if (res.ok) {
+        await fetchCoffees();
+      }
+    } catch (error) {
+      console.error("Error updating coffee:", error);
+    }
   };
 
-  const deleteCoffee = (id) => {
-    setCoffees((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const updateCoffee = (id, updatedData, ingredientsList) => {
-    const calculatedPrice = calculateTotalPrice(updatedData.ingredients, ingredientsList);
-    setCoffees((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, ...updatedData, totalPrice: calculatedPrice }
-          : item
-      )
-    );
+  const deleteCoffee = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/craft_coffee_items/${id}`, {
+        method: "DELETE",
+        headers,
+      });
+      if (res.ok) {
+        await fetchCoffees();
+      }
+    } catch (error) {
+      console.error("Error deleting coffee:", error);
+    }
   };
 
   return (
     <CoffeeContext.Provider
       value={{
         coffees,
+        loading,
         addCoffee,
+        updateCoffee,
         deleteCoffee,
-        updateCoffee
+        refreshCoffees: fetchCoffees,
       }}
     >
       {children}
@@ -75,10 +93,4 @@ export const CoffeeProvider = ({ children }) => {
   );
 };
 
-export const useCoffee = () => {
-  const context = useContext(CoffeeContext);
-  if (!context) {
-    throw new Error("useCoffee must be used within a CoffeeProvider");
-  }
-  return context;
-};
+export const useCoffee = () => useContext(CoffeeContext);
